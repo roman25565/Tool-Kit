@@ -1,0 +1,17 @@
+name: Kirca
+version: '${project.version}'
+main: kirca.kirca.Kirca
+api-version: '1.21'
+commands:
+  givemultibreakpickaxe:
+    description: Gives a Multibreak Pickaxe
+    aliases:
+      - givepickaxe
+      - gmp
+  givemultibreakshovel:
+    description: Gives a Multibreak Shovel
+    aliases:
+      - giveshovel
+      - gms
+  lifetime:
+    description: view server:lifetime
