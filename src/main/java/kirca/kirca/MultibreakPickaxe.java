@@ -8,13 +8,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class MultibreakPickaxe implements Listener {
-
-
     BlockFace blockface = null;
 
     @EventHandler
@@ -38,23 +35,58 @@ public class MultibreakPickaxe implements Listener {
         }
     }
 
-    private static List<Block> getBlocks(BlockBreakEvent event) {
-        List<Block> blocks = new ArrayList<>();
+    private List<Block> getBlocks(BlockBreakEvent event) {
         Block clickedBlock = event.getBlock();
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    Block relativeBlock = clickedBlock.getRelative(x, y, z);
+        BlockFace face = (blockface != null) ? blockface : BlockFace.UP;
 
-                    if (relativeBlock.getType() != Material.BEDROCK || (z == 0 && y == 0 && x == 0) || isNonAir(relativeBlock)) {
-                        blocks.add(relativeBlock);
-                    }
-                }
+        // Predefine offsets for each face to avoid repeated array creation
+        final int[][] OFFSETS_XZ = {
+                {-1, 0, -1}, {0, 0, -1}, {1, 0, -1},
+                {-1, 0,  0}, {0, 0,  0}, {1, 0,  0},
+                {-1, 0,  1}, {0, 0,  1}, {1, 0,  1}
+        };
+        final int[][] OFFSETS_XY = {
+                {-1, -1, 0}, {0, -1, 0}, {1, -1, 0},
+                {-1,  0, 0}, {0,  0, 0}, {1,  0, 0},
+                {-1,  1, 0}, {0,  1, 0}, {1,  1, 0}
+        };
+        final int[][] OFFSETS_YZ = {
+                {0, -1, -1}, {0, -1, 0}, {0, -1, 1},
+                {0,  0, -1}, {0,  0, 0}, {0,  0, 1},
+                {0,  1, -1}, {0,  1, 0}, {0,  1, 1}
+        };
+
+        int[][] offsets;
+        switch (face) {
+            case UP:
+            case DOWN:
+                offsets = OFFSETS_XZ;
+                break;
+            case NORTH:
+            case SOUTH:
+                offsets = OFFSETS_XY;
+                break;
+            case EAST:
+            case WEST:
+                offsets = OFFSETS_YZ;
+                break;
+            default:
+                offsets = OFFSETS_XZ;
+        }
+
+        List<Block> blocks = new ArrayList<>(9);
+        for (int[] offset : offsets) {
+            Block relativeBlock = clickedBlock.getRelative(offset[0], offset[1], offset[2]);
+            // Only add if not bedrock, or is the center block, or is not air
+            if (relativeBlock.getType() != Material.BEDROCK
+                    || (offset[0] == 0 && offset[1] == 0 && offset[2] == 0)
+                    || isNonAir(relativeBlock)) {
+                blocks.add(relativeBlock);
             }
         }
         return blocks;
     }
-    public static boolean isNonAir(Block block) {
+    public boolean isNonAir(Block block) {
         return block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR;
     }
 }
