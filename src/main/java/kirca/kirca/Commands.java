@@ -14,50 +14,66 @@ import java.util.List;
 public class Commands implements CommandExecutor {
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (sender instanceof Player) {
-            Player player = (Player)sender;
-            if (cmd.getName().equalsIgnoreCase("lifetime")) {
-                World world = Bukkit.getWorlds().get(0); // перший світ (як правило "world")
-                SendWorldInfo(world, player);
-
-                return true;
-            }
-
-            if (player.hasPermission("op")) {
-                if(cmd.getName().equalsIgnoreCase("givemultibreakpickaxe")){
-                    player.getInventory().addItem(ItemManager.MultibreakPickaxe);
-                }
-                if(cmd.getName().equalsIgnoreCase("givemultibreakShovel")){
-                    player.getInventory().addItem(ItemManager.MultibreakShovel);
-
-                    ItemMeta itemMeta = ((Player) sender).getPlayer().getInventory().getItemInMainHand().getItemMeta();
-                    List<String> lore = itemMeta.getLore();
-
-                    if (lore != null && !lore.isEmpty()) {
-                        // Display lore in console
-                        System.out.println("Item Lore:");
-                        for (String line : lore) {
-                            System.out.println(line);
-                        }
-
-                        // Send lore to player
-                        player.sendMessage("Item Lore:");
-                        for (String line : lore) {
-                            player.sendMessage(line);
-                        }
-                    }
-                }
-
-            }
-            else {
-                sender.sendMessage("You are not allowed to use this command");
-            }
-            return true;
-        }
-        else {
+        if (!(sender instanceof Player)) {
             sender.sendMessage("Only players can use that command");
             return true;
         }
+
+        Player player = (Player) sender;
+        if (cmd.getName().equalsIgnoreCase("lifetime")) {
+            World world = Bukkit.getWorlds().get(0); // перший світ (як правило "world")
+            SendWorldInfo(world, player);
+
+            return true;
+        }
+
+        if (cmd.getName().equalsIgnoreCase("changeworld")) {
+            String currentWorld = player.getWorld().getName();
+
+            if (currentWorld.equals("creative_world")) {
+                // З креативного тільки в newWorl
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv tp " + player.getName() + " newWorl");
+                player.sendMessage("§aTeleported to Survival world!");
+            } else if (currentWorld.equals("newWorl")) {
+                // З newWorl тільки в креативний
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv tp " + player.getName() + " creative_world");
+                player.sendMessage("§aTeleported to Creative world!");
+            } else {
+                player.sendMessage("§cYou can only switch between survival and creative worlds!");
+            }
+
+            return true;
+        }
+
+        if (player.hasPermission("op")) {
+            if (cmd.getName().equalsIgnoreCase("givemultibreakpickaxe")) {
+                player.getInventory().addItem(ItemManager.MultibreakPickaxe);
+            }
+            if (cmd.getName().equalsIgnoreCase("givemultibreakShovel")) {
+                player.getInventory().addItem(ItemManager.MultibreakShovel);
+
+                ItemMeta itemMeta = ((Player) sender).getPlayer().getInventory().getItemInMainHand().getItemMeta();
+                List<String> lore = itemMeta.getLore();
+
+                if (lore != null && !lore.isEmpty()) {
+                    // Display lore in console
+                    System.out.println("Item Lore:");
+                    for (String line : lore) {
+                        System.out.println(line);
+                    }
+
+                    // Send lore to player
+                    player.sendMessage("Item Lore:");
+                    for (String line : lore) {
+                        player.sendMessage(line);
+                    }
+                }
+            }
+
+        } else {
+            sender.sendMessage("You are not allowed to use this command");
+        }
+        return true;
     }
 
     private static void SendWorldInfo(World world, Player player) {
